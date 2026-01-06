@@ -117,13 +117,21 @@ class LookupService {
         'h1.title-title',
         'h1',
         '[data-uia="hero-title"]',
+        'meta[property="og:title"]', // Open Graph fallback
+        'meta[name="title"]', // Meta title fallback
       ];
 
       for (const selector of titleSelectors) {
-        const titleText = $(selector).first().text().trim();
-        if (titleText) {
-          title = titleText;
-          break;
+        let titleText = '';
+        if (selector.startsWith('meta')) {
+          titleText = $(selector).attr('content')?.trim() || '';
+        } else {
+          titleText = $(selector).first().text().trim();
+        }
+        if (titleText && !titleText.includes('Netflix') && titleText.length > 1) {
+          // Clean up title (remove "Watch" prefix, etc.)
+          title = titleText.replace(/^Watch\s+/i, '').replace(/\s*on Netflix.*$/i, '').trim();
+          if (title) break;
         }
       }
 
@@ -180,8 +188,37 @@ class LookupService {
         console.log('[DEBUG] No title extracted from Netflix page');
       }
     } catch (error) {
-      console.log('Netflix HTML fetch failed:', error.message);
-      console.log('Error stack:', error.stack);
+      console.log('[DEBUG] Netflix HTML fetch failed:', error.message);
+      console.log('[DEBUG] Error code:', error.code);
+      console.log('[DEBUG] Error response status:', error.response?.status);
+      console.log('[DEBUG] Error response data:', error.response?.data?.substring(0, 200));
+      
+      // If it's a timeout or network error, try one more time with a longer timeout
+      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || !error.response) {
+        console.log('[DEBUG] Retrying with longer timeout...');
+        try {
+          const retryResponse = await axios.get(`https://www.netflix.com/title/${netflixId}`, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+              'Accept-Language': 'en-US,en;q=0.5',
+            },
+            timeout: 15000,
+          });
+          
+          const $retry = cheerio.load(retryResponse.data);
+          const ogTitle = $retry('meta[property="og:title"]').attr('content');
+          if (ogTitle && !ogTitle.includes('Netflix')) {
+            title = ogTitle.replace(/^Watch\s+/i, '').replace(/\s*on Netflix.*$/i, '').trim();
+            if (title) {
+              console.log(`[DEBUG] Retry successful, extracted title: "${title}"`);
+              // Continue with TMDB lookup below
+            }
+          }
+        } catch (retryError) {
+          console.log('[DEBUG] Retry also failed:', retryError.message);
+        }
+      }
     }
 
     // If all methods fail
