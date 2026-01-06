@@ -12,9 +12,10 @@
 // 4. Use that .vercel.app URL (NOT the vercel.com dashboard URL!)
 //
 // IMPORTANT: The URL should end in .vercel.app, NOT vercel.com!
-// Always use localhost for now until Vercel URL is configured
-// For production builds, replace with your actual Vercel .vercel.app URL
+// API Configuration
+// Development: use localhost (works for simulator and when backend is running locally)
+// Production: use Vercel deployment URL
 export const API_BASE_URL = 
   typeof __DEV__ !== 'undefined' && __DEV__
     ? "http://localhost:4000"  // Development: localhost works for simulator
-    : "http://localhost:4000"; // TODO: Replace with Vercel URL for production (must end in .vercel.app)
+    : "https://streamwise-ecru.vercel.app"; // Production: Vercel deployment
