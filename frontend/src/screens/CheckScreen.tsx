@@ -25,6 +25,7 @@ interface LookupResponse {
   year?: string;
   runtime?: string;
   imdbId?: string;
+  posterUrl?: string;
   error?: string;
   message?: string;
 }
@@ -38,6 +39,7 @@ interface HistoryItem {
   year?: string;
   runtime?: string;
   imdbId?: string;
+  posterUrl?: string;
   checkedAt: number;
 }
 
@@ -117,17 +119,18 @@ export const CheckScreen: React.FC = () => {
       if (response.success) {
         setResult(response);
 
-        const historyItem: HistoryItem = {
-          id: `${Date.now()}-${Math.random()}`,
-          input: lookupText,
-          title: response.title,
-          service: response.error ? "manual" : "netflix",
-          rating: response.rating,
-          year: response.year,
-          runtime: response.runtime,
-          imdbId: response.imdbId,
-          checkedAt: Date.now(),
-        };
+              const historyItem: HistoryItem = {
+                id: `${Date.now()}-${Math.random()}`,
+                input: lookupText,
+                title: response.title,
+                service: response.error ? "manual" : "netflix",
+                rating: response.rating,
+                year: response.year,
+                runtime: response.runtime,
+                imdbId: response.imdbId,
+                posterUrl: response.posterUrl,
+                checkedAt: Date.now(),
+              };
         await storageService.saveHistoryItem(historyItem);
       } else {
         // Show specific error messages based on error type

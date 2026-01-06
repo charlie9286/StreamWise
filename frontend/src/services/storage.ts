@@ -9,6 +9,7 @@ interface HistoryItem {
   year?: string;
   runtime?: string;
   imdbId?: string;
+  posterUrl?: string;
   checkedAt: number;
 }
 

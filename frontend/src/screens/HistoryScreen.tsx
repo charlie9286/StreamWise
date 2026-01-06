@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   Animated,
+  Image,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useColorScheme } from "react-native";
@@ -26,6 +27,7 @@ interface HistoryItem {
   year?: string;
   runtime?: string;
   imdbId?: string;
+  posterUrl?: string;
   checkedAt: number;
 }
 
@@ -36,6 +38,7 @@ interface LookupResponse {
   year?: string;
   runtime?: string;
   imdbId?: string;
+  posterUrl?: string;
 }
 
 type FilterType = "all" | "netflix";
@@ -148,45 +151,53 @@ export const HistoryScreen: React.FC = () => {
           }
         }}
       >
-        <TouchableOpacity
-          style={styles.historyItem}
-          onPress={() => setSelectedItem(item)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.historyItemContent}>
-            <Text style={styles.historyItemTitle} numberOfLines={1}>
-              {item.title || item.input}
-            </Text>
-            <View style={styles.historyItemMeta}>
-              <Text style={styles.historyItemMetaText}>
-                {item.rating && `⭐ ${item.rating}`}
-                {item.year && ` • ${item.year}`}
-                {item.runtime && ` • ${item.runtime} min`}
-              </Text>
-              <Text style={styles.historyItemDate}>
-                {formatDate(item.checkedAt)}
-              </Text>
-            </View>
-          </View>
-          <Icon
-            name="chevron-forward"
-            size={20}
-            color={isDark ? "#8E8E93" : "#6B7280"}
-          />
-        </TouchableOpacity>
+               <TouchableOpacity
+                 style={styles.historyItem}
+                 onPress={() => setSelectedItem(item)}
+                 activeOpacity={0.7}
+               >
+                 {item.posterUrl && (
+                   <Image
+                     source={{ uri: item.posterUrl }}
+                     style={styles.posterImage}
+                     resizeMode="cover"
+                   />
+                 )}
+                 <View style={styles.historyItemContent}>
+                   <Text style={styles.historyItemTitle} numberOfLines={1}>
+                     {item.title || item.input}
+                   </Text>
+                   <View style={styles.historyItemMeta}>
+                     <Text style={styles.historyItemMetaText}>
+                       {item.rating && `⭐ ${item.rating}`}
+                       {item.year && ` • ${item.year}`}
+                       {item.runtime && ` • ${item.runtime} min`}
+                     </Text>
+                     <Text style={styles.historyItemDate}>
+                       {formatDate(item.checkedAt)}
+                     </Text>
+                   </View>
+                 </View>
+                 <Icon
+                   name="chevron-forward"
+                   size={20}
+                   color={isDark ? "#8E8E93" : "#6B7280"}
+                 />
+               </TouchableOpacity>
       </Swipeable>
     );
   };
 
-  if (selectedItem) {
-    const result: LookupResponse = {
-      success: true,
-      title: selectedItem.title,
-      rating: selectedItem.rating,
-      year: selectedItem.year,
-      runtime: selectedItem.runtime,
-      imdbId: selectedItem.imdbId,
-    };
+         if (selectedItem) {
+           const result: LookupResponse = {
+             success: true,
+             title: selectedItem.title,
+             rating: selectedItem.rating,
+             year: selectedItem.year,
+             runtime: selectedItem.runtime,
+             imdbId: selectedItem.imdbId,
+             posterUrl: selectedItem.posterUrl,
+           };
 
     return (
       <View style={styles.container}>
@@ -317,22 +328,29 @@ const createStyles = (isDark: boolean) =>
     listContent: {
       padding: 16,
     },
-    historyItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 12,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 2,
-    },
-    historyItemContent: {
-      flex: 1,
-    },
+           historyItem: {
+             flexDirection: "row",
+             alignItems: "center",
+             backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF",
+             borderRadius: 12,
+             padding: 16,
+             marginBottom: 12,
+             shadowColor: "#000",
+             shadowOffset: { width: 0, height: 1 },
+             shadowOpacity: 0.05,
+             shadowRadius: 2,
+             elevation: 2,
+           },
+           posterImage: {
+             width: 50,
+             height: 75,
+             borderRadius: 8,
+             marginRight: 12,
+             backgroundColor: isDark ? "#2C2C2E" : "#E5E7EB",
+           },
+           historyItemContent: {
+             flex: 1,
+           },
     historyItemTitle: {
       fontSize: 16,
       fontWeight: "600",

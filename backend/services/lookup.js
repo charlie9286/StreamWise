@@ -406,6 +406,12 @@ class LookupService {
     // Get title from TMDB (name for TV shows, title for movies)
     const title = details.name || details.title;
 
+    // Get poster URL from TMDB
+    const posterPath = details.poster_path;
+    const posterUrl = posterPath 
+      ? `https://image.tmdb.org/t/p/w500${posterPath}`
+      : undefined;
+
     return {
       success: true,
       service: 'netflix',
@@ -414,6 +420,7 @@ class LookupService {
       year,
       runtime,
       imdbId: details.external_ids?.imdb_id,
+      posterUrl,
     };
   }
 }
