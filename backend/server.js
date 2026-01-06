@@ -35,6 +35,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 StreamWise API running on http://localhost:${PORT}`);
-});
+// Export for Vercel serverless functions
+module.exports = app;
+
+// Run as standalone server for local development (when not on Vercel)
+if (!process.env.VERCEL && require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 StreamWise API running on http://localhost:${PORT}`);
+  });
+}
