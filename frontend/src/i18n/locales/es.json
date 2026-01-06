@@ -6,8 +6,10 @@
     "go": "Ir",
     "inputPlaceholder": "Pega el enlace de Netflix o ingresa el título...",
     "loading": "Buscando...",
-    "error": "Error",
-    "errorMessage": "No se pudo encontrar este título. Intenta pegar el nombre del título en su lugar."
+        "error": "Error",
+        "errorMessage": "No se pudo encontrar este título. Intenta pegar el nombre del título en su lugar.",
+        "netflixError": "No se pudo resolver este enlace de Netflix. Intenta pegar el nombre del título en su lugar.",
+        "networkError": "Error de red. Verifica tu conexión a internet."
   },
   "history": {
     "title": "Historial",

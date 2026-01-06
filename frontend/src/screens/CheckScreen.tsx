@@ -130,13 +130,24 @@ export const CheckScreen: React.FC = () => {
         };
         await storageService.saveHistoryItem(historyItem);
       } else {
-        setError(response.message || t("check.errorMessage"));
-        // Don't show alert for auto-lookups, just set error state
+        // Show specific error messages based on error type
+        let errorMessage = t("check.errorMessage");
+        if (response.error === "UNRESOLVED_NETFLIX_LINK") {
+          errorMessage = t("check.netflixError") || response.message || errorMessage;
+        } else if (response.error === "NOT_FOUND") {
+          errorMessage = t("check.errorMessage");
+        } else {
+          errorMessage = response.message || errorMessage;
+        }
+        setError(errorMessage);
       }
     } catch (error) {
-      const errorMessage = t("check.errorMessage");
+      console.error("[CheckScreen] Lookup error:", error);
+      // Check if it's a network error
+      const errorMessage = error instanceof Error && error.message.includes("fetch")
+        ? t("check.networkError") || "Network error. Check your internet connection."
+        : t("check.errorMessage");
       setError(errorMessage);
-      // Don't show alert for auto-lookups
     } finally {
       setLoading(false);
     }

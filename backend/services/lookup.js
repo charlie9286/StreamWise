@@ -101,38 +101,89 @@ class LookupService {
 
     try {
       const netflixUrl = `https://www.netflix.com/title/${netflixId}`;
+      
+      // Use more complete browser headers to avoid blocking
+      const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Cache-Control': 'max-age=0',
+      };
+      
       const response = await axios.get(netflixUrl, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        headers,
+        timeout: 15000, // Increased timeout for serverless
+        maxRedirects: 5,
+        validateStatus: function (status) {
+          return status >= 200 && status < 400; // Accept redirects
         },
-        timeout: 10000,
       });
 
       const $ = cheerio.load(response.data);
 
-      // Try to extract title from various possible selectors
+      // Try to extract title from various possible selectors (in order of preference)
       const titleSelectors = [
         'h1[data-uia="hero-title"]',
         'h1.title-title',
+        'h1[class*="title"]',
         'h1',
         '[data-uia="hero-title"]',
+        '[class*="hero-title"]',
         'meta[property="og:title"]', // Open Graph fallback
         'meta[name="title"]', // Meta title fallback
+        'title', // HTML title tag as last resort
       ];
 
       for (const selector of titleSelectors) {
         let titleText = '';
         if (selector.startsWith('meta')) {
           titleText = $(selector).attr('content')?.trim() || '';
+        } else if (selector === 'title') {
+          titleText = $('title').text().trim();
         } else {
           titleText = $(selector).first().text().trim();
         }
-        if (titleText && !titleText.includes('Netflix') && titleText.length > 1) {
-          // Clean up title (remove "Watch" prefix, etc.)
-          title = titleText.replace(/^Watch\s+/i, '').replace(/\s*on Netflix.*$/i, '').trim();
-          if (title) break;
+        
+        if (titleText && titleText.length > 1) {
+          // Clean up title (remove "Watch" prefix, "Netflix" suffix, etc.)
+          let cleaned = titleText
+            .replace(/^Watch\s+/i, '')
+            .replace(/\s*on Netflix.*$/i, '')
+            .replace(/\s*-\s*Netflix.*$/i, '')
+            .replace(/\s*\|.*$/i, '') // Remove everything after |
+            .trim();
+          
+          // Only use if it doesn't look like a generic Netflix page title
+          if (cleaned && !cleaned.match(/^Netflix$/i) && cleaned.length > 1) {
+            title = cleaned;
+            console.log(`[DEBUG] Extracted title from ${selector}: "${title}"`);
+            break;
+          }
         }
+      }
+      
+      // If still no title, try extracting from JSON-LD structured data
+      if (!title) {
+        const jsonLdScripts = $('script[type="application/ld+json"]');
+        jsonLdScripts.each((i, elem) => {
+          try {
+            const jsonData = JSON.parse($(elem).html());
+            if (jsonData.name && !jsonData.name.includes('Netflix')) {
+              title = jsonData.name.trim();
+              console.log(`[DEBUG] Extracted title from JSON-LD: "${title}"`);
+              return false; // Break the loop
+            }
+          } catch (e) {
+            // Ignore JSON parse errors
+          }
+        });
       }
 
       // Try to extract year from various sources
@@ -163,7 +214,7 @@ class LookupService {
         }
       }
 
-      // If we found a title, proceed to TMDB
+      // If we found a title (from initial attempt or retry), proceed to TMDB
       if (title) {
         console.log(`[DEBUG] Extracted title: "${title}", year: ${year || 'none'}`);
         // Try without year first (more flexible), then with year if that fails
@@ -185,7 +236,7 @@ class LookupService {
           console.log(`[DEBUG] TMDB lookup failed for "${title}" (year: ${year || 'none'}), error: ${tmdbResult.error}`);
         }
       } else {
-        console.log('[DEBUG] No title extracted from Netflix page');
+        console.log('[DEBUG] No title extracted from Netflix page after all attempts');
       }
     } catch (error) {
       console.log('[DEBUG] Netflix HTML fetch failed:', error.message);
@@ -193,30 +244,65 @@ class LookupService {
       console.log('[DEBUG] Error response status:', error.response?.status);
       console.log('[DEBUG] Error response data:', error.response?.data?.substring(0, 200));
       
-      // If it's a timeout or network error, try one more time with a longer timeout
-      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || !error.response) {
-        console.log('[DEBUG] Retrying with longer timeout...');
+      // If it's a timeout or network error, try one more time with different approach
+      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || !error.response || error.response?.status >= 400) {
+        console.log('[DEBUG] First attempt failed, retrying with alternative approach...');
         try {
+          // Try with different User-Agent (mobile browser)
+          const retryHeaders = {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+          };
+          
           const retryResponse = await axios.get(`https://www.netflix.com/title/${netflixId}`, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.5',
+            headers: retryHeaders,
+            timeout: 20000, // Even longer timeout for retry
+            maxRedirects: 5,
+            validateStatus: function (status) {
+              return status >= 200 && status < 400;
             },
-            timeout: 15000,
           });
           
           const $retry = cheerio.load(retryResponse.data);
-          const ogTitle = $retry('meta[property="og:title"]').attr('content');
-          if (ogTitle && !ogTitle.includes('Netflix')) {
-            title = ogTitle.replace(/^Watch\s+/i, '').replace(/\s*on Netflix.*$/i, '').trim();
-            if (title) {
-              console.log(`[DEBUG] Retry successful, extracted title: "${title}"`);
-              // Continue with TMDB lookup below
+          
+          // Try all title extraction methods again
+          const retrySelectors = [
+            'meta[property="og:title"]',
+            'h1[data-uia="hero-title"]',
+            'h1',
+            'title',
+          ];
+          
+          for (const selector of retrySelectors) {
+            let titleText = '';
+            if (selector.startsWith('meta')) {
+              titleText = $retry(selector).attr('content')?.trim() || '';
+            } else if (selector === 'title') {
+              titleText = $retry('title').text().trim();
+            } else {
+              titleText = $retry(selector).first().text().trim();
+            }
+            
+            if (titleText && titleText.length > 1) {
+              let cleaned = titleText
+                .replace(/^Watch\s+/i, '')
+                .replace(/\s*on Netflix.*$/i, '')
+                .replace(/\s*-\s*Netflix.*$/i, '')
+                .trim();
+              
+              if (cleaned && !cleaned.match(/^Netflix$/i) && cleaned.length > 1) {
+                title = cleaned;
+                console.log(`[DEBUG] Retry successful, extracted title: "${title}"`);
+                break;
+              }
             }
           }
         } catch (retryError) {
           console.log('[DEBUG] Retry also failed:', retryError.message);
+          console.log('[DEBUG] Retry error code:', retryError.code);
+          console.log('[DEBUG] Retry response status:', retryError.response?.status);
         }
       }
     }

@@ -6,8 +6,10 @@
     "go": "Go",
     "inputPlaceholder": "Paste Netflix link or enter title...",
     "loading": "Looking up...",
-    "error": "Error",
-    "errorMessage": "Could not find this title. Try pasting the title name instead."
+        "error": "Error",
+        "errorMessage": "Could not find this title. Try pasting the title name instead.",
+        "netflixError": "Could not resolve this Netflix link. Try pasting the title name instead.",
+        "networkError": "Network error. Check your internet connection."
   },
   "history": {
     "title": "History",
