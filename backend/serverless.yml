@@ -1,0 +1,29 @@
+service: streamwise-backend
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    NODE_ENV: production
+    TMDB_API_KEY: ${env:TMDB_API_KEY}
+    FALLBACK_API_KEY: ${env:FALLBACK_API_KEY}
+  timeout: 30
+  memorySize: 512
+
+functions:
+  api:
+    handler: lambda.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /
+          method: ANY
+          cors: true
+
+plugins:
+  - serverless-offline

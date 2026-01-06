@@ -98,11 +98,14 @@ class LookupService {
     // Try free-first: fetch Netflix public page
     let title = null;
     let year = null;
-
+    let response = null;
+    let $ = null;
+    
+    const netflixUrl = `https://www.netflix.com/title/${netflixId}`;
+    
+    // Approach 1: Direct request with full browser headers
     try {
-      const netflixUrl = `https://www.netflix.com/title/${netflixId}`;
-      
-      // Use more complete browser headers to avoid blocking
+      console.log('[DEBUG] Attempting direct Netflix fetch...');
       const headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -115,18 +118,60 @@ class LookupService {
         'Sec-Fetch-Mode': 'navigate',
         'Sec-Fetch-Site': 'none',
         'Cache-Control': 'max-age=0',
+        'Referer': 'https://www.google.com/', // Add referer to look more legitimate
       };
       
-      const response = await axios.get(netflixUrl, {
+      response = await axios.get(netflixUrl, {
         headers,
-        timeout: 15000, // Increased timeout for serverless
+        timeout: 15000,
         maxRedirects: 5,
         validateStatus: function (status) {
-          return status >= 200 && status < 400; // Accept redirects
+          return status >= 200 && status < 400;
         },
       });
-
-      const $ = cheerio.load(response.data);
+      
+      $ = cheerio.load(response.data);
+      console.log('[DEBUG] Direct fetch successful, status:', response.status);
+    } catch (error) {
+      console.log('[DEBUG] Direct fetch failed:', error.message);
+      console.log('[DEBUG] Error status:', error.response?.status);
+      
+      // Approach 2: Try with mobile User-Agent
+      if (error.response?.status === 403 || !error.response) {
+        try {
+          console.log('[DEBUG] Retrying with mobile User-Agent...');
+          const mobileHeaders = {
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.google.com/',
+          };
+          
+          response = await axios.get(netflixUrl, {
+            headers: mobileHeaders,
+            timeout: 20000,
+            maxRedirects: 5,
+            validateStatus: function (status) {
+              return status >= 200 && status < 400;
+            },
+          });
+          
+          $ = cheerio.load(response.data);
+          console.log('[DEBUG] Mobile User-Agent fetch successful');
+        } catch (mobileError) {
+          console.log('[DEBUG] Mobile User-Agent also failed:', mobileError.message);
+          console.log('[DEBUG] Mobile error status:', mobileError.response?.status);
+          
+          // Approach 3: Try using a proxy service via ScraperAPI or similar
+          // For now, we'll mark that scraping failed and continue to fallback
+          console.log('[DEBUG] All direct scraping methods failed (likely blocked by Netflix)');
+          // Will fall through to try TMDB search directly
+        }
+      }
+    }
+    
+    // If we got a response, try to extract title
+    if ($ && response && response.status < 400) {
 
       // Try to extract title from various possible selectors (in order of preference)
       const titleSelectors = [
@@ -238,80 +283,55 @@ class LookupService {
       } else {
         console.log('[DEBUG] No title extracted from Netflix page after all attempts');
       }
-    } catch (error) {
-      console.log('[DEBUG] Netflix HTML fetch failed:', error.message);
-      console.log('[DEBUG] Error code:', error.code);
-      console.log('[DEBUG] Error response status:', error.response?.status);
-      console.log('[DEBUG] Error response data:', error.response?.data?.substring(0, 200));
+    } else {
+      // If scraping failed completely, try to search TMDB using the Netflix ID
+      // Some titles might be findable by searching for "Netflix" + ID or other methods
+      console.log('[DEBUG] Netflix scraping failed, attempting fallback search...');
       
-      // If it's a timeout or network error, try one more time with different approach
-      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || !error.response || error.response?.status >= 400) {
-        console.log('[DEBUG] First attempt failed, retrying with alternative approach...');
-        try {
-          // Try with different User-Agent (mobile browser)
-          const retryHeaders = {
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-          };
-          
-          const retryResponse = await axios.get(`https://www.netflix.com/title/${netflixId}`, {
-            headers: retryHeaders,
-            timeout: 20000, // Even longer timeout for retry
-            maxRedirects: 5,
-            validateStatus: function (status) {
-              return status >= 200 && status < 400;
-            },
-          });
-          
-          const $retry = cheerio.load(retryResponse.data);
-          
-          // Try all title extraction methods again
-          const retrySelectors = [
-            'meta[property="og:title"]',
-            'h1[data-uia="hero-title"]',
-            'h1',
-            'title',
-          ];
-          
-          for (const selector of retrySelectors) {
-            let titleText = '';
-            if (selector.startsWith('meta')) {
-              titleText = $retry(selector).attr('content')?.trim() || '';
-            } else if (selector === 'title') {
-              titleText = $retry('title').text().trim();
-            } else {
-              titleText = $retry(selector).first().text().trim();
-            }
-            
-            if (titleText && titleText.length > 1) {
-              let cleaned = titleText
-                .replace(/^Watch\s+/i, '')
-                .replace(/\s*on Netflix.*$/i, '')
-                .replace(/\s*-\s*Netflix.*$/i, '')
-                .trim();
-              
-              if (cleaned && !cleaned.match(/^Netflix$/i) && cleaned.length > 1) {
-                title = cleaned;
-                console.log(`[DEBUG] Retry successful, extracted title: "${title}"`);
-                break;
-              }
-            }
-          }
-        } catch (retryError) {
-          console.log('[DEBUG] Retry also failed:', retryError.message);
-          console.log('[DEBUG] Retry error code:', retryError.code);
-          console.log('[DEBUG] Retry response status:', retryError.response?.status);
+      // Try searching TMDB with common Netflix-related terms
+      // This is a last resort - it won't work for all titles
+      const fallbackSearches = [
+        `Netflix ${netflixId}`,
+        `title ${netflixId}`,
+      ];
+      
+      for (const searchTerm of fallbackSearches) {
+        const tmdbResult = await this.fetchFromTMDB(searchTerm, null, locale);
+        if (tmdbResult.success) {
+          console.log(`[DEBUG] Fallback search succeeded with: ${searchTerm}`);
+          resultCache.set(cacheKey, tmdbResult);
+          return tmdbResult;
+        }
+      }
+    }
+    
+    // If all methods fail, return error
+    // If scraping failed completely, try to search TMDB using the Netflix ID as fallback
+    if (!title) {
+      console.log('[DEBUG] Netflix scraping failed, attempting fallback search...');
+      
+      // Try searching TMDB with common Netflix-related terms
+      // This is a last resort - it won't work for all titles
+      const fallbackSearches = [
+        `Netflix ${netflixId}`,
+        `title ${netflixId}`,
+      ];
+      
+      for (const searchTerm of fallbackSearches) {
+        const tmdbResult = await this.fetchFromTMDB(searchTerm, null, locale);
+        if (tmdbResult.success) {
+          console.log(`[DEBUG] Fallback search succeeded with: ${searchTerm}`);
+          resultCache.set(cacheKey, tmdbResult);
+          return tmdbResult;
         }
       }
     }
 
-    // If all methods fail
+    // If all methods fail, return error
     const error = {
       success: false,
       error: 'UNRESOLVED_NETFLIX_LINK',
-      message: 'Could not resolve this Netflix link. Paste the title name instead.',
+      message: 'Could not resolve this Netflix link. Netflix may be blocking automated requests. Try pasting the title name instead.',
     };
     negativeCache.set(cacheKey, error);
     return error;
