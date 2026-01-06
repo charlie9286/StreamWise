@@ -13,9 +13,6 @@
 //
 // IMPORTANT: The URL should end in .vercel.app, NOT vercel.com!
 // API Configuration
-// Development: use localhost (works for simulator and when backend is running locally)
-// Production: use Vercel deployment URL
-export const API_BASE_URL = 
-  typeof __DEV__ !== 'undefined' && __DEV__
-    ? "http://localhost:4000"  // Development: localhost works for simulator
-    : "https://streamwise-ecru.vercel.app"; // Production: Vercel deployment
+// Always use Vercel URL for now to ensure phone works
+// For local development, you can temporarily change this to "http://localhost:4000"
+export const API_BASE_URL = "https://streamwise-ecru.vercel.app";
