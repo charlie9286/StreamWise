@@ -1,0 +1,42 @@
+{
+  "check": {
+    "title": "StreamWise",
+    "instruction": "On Netflix, click Share and copy link, then paste it here.",
+    "pasteAndGo": "Paste & Go",
+    "go": "Go",
+    "inputPlaceholder": "Paste Netflix link or enter title...",
+    "loading": "Looking up...",
+    "error": "Error",
+    "errorMessage": "Could not find this title. Try pasting the title name instead."
+  },
+  "history": {
+    "title": "History",
+    "searchPlaceholder": "Search history...",
+    "filterAll": "All",
+    "filterNetflix": "Netflix",
+    "noHistory": "No history yet",
+    "checkedAt": "Checked",
+    "delete": "Delete"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "languageAuto": "Automatic (Device)",
+    "languageEn": "English",
+    "languageEs": "Spanish",
+    "autoPaste": "Auto-paste clipboard on open",
+    "clearHistory": "Clear History",
+    "clearHistoryConfirm": "Are you sure you want to clear all history?",
+    "about": "About",
+    "aboutText": "StreamWise v1.0.0\n\nA minimal app for getting instant movie/show information from Netflix links.",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "result": {
+    "rating": "Rating",
+    "year": "Year",
+    "runtime": "Runtime",
+    "na": "N/A",
+    "dash": "—"
+  }
+}

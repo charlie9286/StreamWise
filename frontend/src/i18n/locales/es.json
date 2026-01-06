@@ -1,0 +1,42 @@
+{
+  "check": {
+    "title": "StreamWise",
+    "instruction": "En Netflix, pulsa Compartir y copia el enlace, luego pégalo aquí.",
+    "pasteAndGo": "Pegar e Ir",
+    "go": "Ir",
+    "inputPlaceholder": "Pega el enlace de Netflix o ingresa el título...",
+    "loading": "Buscando...",
+    "error": "Error",
+    "errorMessage": "No se pudo encontrar este título. Intenta pegar el nombre del título en su lugar."
+  },
+  "history": {
+    "title": "Historial",
+    "searchPlaceholder": "Buscar en el historial...",
+    "filterAll": "Todos",
+    "filterNetflix": "Netflix",
+    "noHistory": "Aún no hay historial",
+    "checkedAt": "Verificado",
+    "delete": "Eliminar"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "languageAuto": "Automático (Dispositivo)",
+    "languageEn": "Inglés",
+    "languageEs": "Español",
+    "autoPaste": "Pegar automáticamente el portapapeles al abrir",
+    "clearHistory": "Borrar Historial",
+    "clearHistoryConfirm": "¿Estás seguro de que quieres borrar todo el historial?",
+    "about": "Acerca de",
+    "aboutText": "StreamWise v1.0.0\n\nUna aplicación mínima para obtener información instantánea de películas/programas desde enlaces de Netflix.",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar"
+  },
+  "result": {
+    "rating": "Calificación",
+    "year": "Año",
+    "runtime": "Duración",
+    "na": "N/A",
+    "dash": "—"
+  }
+}
