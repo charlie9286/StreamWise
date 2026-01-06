@@ -25,6 +25,17 @@ app.use(limiter);
 app.use('/health', healthRouter);
 app.use('/lookup', lookupRouter);
 
+// Root route for Vercel
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'StreamWise API',
+    endpoints: {
+      health: '/health',
+      lookup: '/lookup'
+    }
+  });
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
@@ -36,10 +47,16 @@ app.use((err, req, res, next) => {
 });
 
 // Export for Vercel serverless functions
+// Vercel will use this as the handler
 module.exports = app;
 
 // Run as standalone server for local development (when not on Vercel)
-if (!process.env.VERCEL && require.main === module) {
+// Check if we're running directly (not imported) and not on Vercel
+if (process.env.VERCEL) {
+  // On Vercel, just export the app - no need to listen
+  console.log('Running on Vercel');
+} else if (require.main === module) {
+  // Local development - start the server
   app.listen(PORT, () => {
     console.log(`🚀 StreamWise API running on http://localhost:${PORT}`);
   });

@@ -1,8 +1,20 @@
 // API Configuration
-// For physical devices in development, change this to your computer's local IP address
-// e.g., "http://192.168.1.100:4000"
-// For production, replace with your actual Vercel deployment URL
-// Find it in: https://vercel.com/charlie9286s-projects/streamwise
-export const API_BASE_URL = __DEV__
-  ? "http://localhost:4000"
-  : "https://YOUR-VERCEL-URL-HERE.vercel.app"; // TODO: Replace with your Vercel URL
+// For development: use localhost (works on simulator) or your computer's local IP for physical devices
+// For production: use your Vercel deployment URL (NOT the dashboard URL)
+// 
+// To find your Vercel URL:
+// 1. Go to: https://vercel.com/charlie9286s-projects/streamwise
+// 2. Click on your project name
+// 3. Look for "Domains" section - it will show something like:
+//    - streamwise.vercel.app
+//    - streamwise-backend.vercel.app
+//    - streamwise-xxx.vercel.app
+// 4. Use that .vercel.app URL (NOT the vercel.com dashboard URL!)
+//
+// IMPORTANT: The URL should end in .vercel.app, NOT vercel.com!
+// Always use localhost for now until Vercel URL is configured
+// For production builds, replace with your actual Vercel .vercel.app URL
+export const API_BASE_URL = 
+  typeof __DEV__ !== 'undefined' && __DEV__
+    ? "http://localhost:4000"  // Development: localhost works for simulator
+    : "http://localhost:4000"; // TODO: Replace with Vercel URL for production (must end in .vercel.app)
