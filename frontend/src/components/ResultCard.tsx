@@ -24,11 +24,11 @@ export const ResultCard: React.FC<ResultCardProps> = ({ result }) => {
 
   const styles = createStyles(isDark);
 
-  const rating = result.rating || t("result.na");
-  const year = result.year || t("result.dash");
-  const runtime = result.runtime
-    ? `${result.runtime} min`
-    : t("result.dash");
+        const rating = result.rating || t("result.na");
+        const genre = result.genre || t("result.dash");
+        const runtime = result.runtime
+          ? `${result.runtime} min`
+          : t("result.dash");
 
   return (
     <View style={styles.card}>
@@ -50,19 +50,19 @@ export const ResultCard: React.FC<ResultCardProps> = ({ result }) => {
         </View>
       </View>
 
-      <View style={styles.item}>
-        <View style={styles.iconContainer}>
-          <Icon
-            name="calendar"
-            size={32}
-            color={isDark ? "#4A90E2" : "#2563EB"}
-          />
-        </View>
-        <View style={styles.itemContent}>
-          <Text style={styles.label}>{t("result.year")}</Text>
-          <Text style={styles.value}>{year}</Text>
-        </View>
-      </View>
+            <View style={styles.item}>
+              <View style={styles.iconContainer}>
+                <Icon
+                  name="calendar"
+                  size={32}
+                  color={isDark ? "#4A90E2" : "#2563EB"}
+                />
+              </View>
+              <View style={styles.itemContent}>
+                <Text style={styles.label}>{t("result.genre")}</Text>
+                <Text style={styles.value}>{genre}</Text>
+              </View>
+            </View>
 
       <View style={styles.item}>
         <View style={styles.iconContainer}>

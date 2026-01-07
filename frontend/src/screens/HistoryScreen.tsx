@@ -23,7 +23,7 @@ interface HistoryItem {
   title?: string;
   service: "netflix" | "manual";
   rating?: string;
-  year?: string;
+  genre?: string;
   runtime?: string;
   imdbId?: string;
   posterUrl?: string;
@@ -34,7 +34,7 @@ interface LookupResponse {
   success: boolean;
   title?: string;
   rating?: string;
-  year?: string;
+  genre?: string;
   runtime?: string;
   imdbId?: string;
   posterUrl?: string;
@@ -109,7 +109,7 @@ export const HistoryScreen: React.FC = () => {
       success: true,
       title: item.title,
       rating: item.rating,
-      year: item.year,
+      genre: item.genre,
       runtime: item.runtime,
       imdbId: item.imdbId,
     };
@@ -160,11 +160,11 @@ export const HistoryScreen: React.FC = () => {
                      {item.title || item.input}
                    </Text>
                    <View style={styles.historyItemMeta}>
-                     <Text style={styles.historyItemMetaText}>
-                       {item.rating && `⭐ ${item.rating}`}
-                       {item.year && ` • ${item.year}`}
-                       {item.runtime && ` • ${item.runtime} min`}
-                     </Text>
+                    <Text style={styles.historyItemMetaText}>
+                      {item.rating && `⭐ ${item.rating}`}
+                      {item.genre && ` • ${item.genre}`}
+                      {item.runtime && ` • ${item.runtime} min`}
+                    </Text>
                      <Text style={styles.historyItemDate}>
                        {formatDate(item.checkedAt)}
                      </Text>
@@ -181,15 +181,15 @@ export const HistoryScreen: React.FC = () => {
   };
 
          if (selectedItem) {
-           const result: LookupResponse = {
-             success: true,
-             title: selectedItem.title,
-             rating: selectedItem.rating,
-             year: selectedItem.year,
-             runtime: selectedItem.runtime,
-             imdbId: selectedItem.imdbId,
-             posterUrl: selectedItem.posterUrl,
-           };
+    const result: LookupResponse = {
+      success: true,
+      title: selectedItem.title,
+      rating: selectedItem.rating,
+      genre: selectedItem.genre,
+      runtime: selectedItem.runtime,
+      imdbId: selectedItem.imdbId,
+      posterUrl: selectedItem.posterUrl,
+    };
 
     return (
       <View style={styles.container}>

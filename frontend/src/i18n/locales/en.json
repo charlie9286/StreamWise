@@ -34,11 +34,11 @@
     "cancel": "Cancel",
     "confirm": "Confirm"
   },
-  "result": {
-    "rating": "Rating",
-    "year": "Year",
-    "runtime": "Runtime",
-    "na": "N/A",
-    "dash": "—"
-  }
+        "result": {
+          "rating": "Rating",
+          "genre": "Genre",
+          "runtime": "Runtime",
+          "na": "N/A",
+          "dash": "—"
+        }
 }

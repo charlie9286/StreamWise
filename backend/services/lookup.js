@@ -395,16 +395,15 @@ class LookupService {
       ? details.vote_average.toFixed(1)
       : undefined;
 
-    // Handle both movie (release_date) and TV (first_air_date)
-    const dateStr = details.release_date || details.first_air_date;
-    const year = dateStr
-      ? new Date(dateStr).getFullYear().toString()
-      : undefined;
-
     const runtime = details.runtime ? details.runtime.toString() : undefined;
 
     // Get title from TMDB (name for TV shows, title for movies)
     const title = details.name || details.title;
+
+    // Get genre from TMDB (genres is an array of objects with id and name)
+    const genre = details.genres && details.genres.length > 0
+      ? details.genres.map(g => g.name).join(', ')
+      : undefined;
 
     // Get poster URL from TMDB
     const posterPath = details.poster_path;
@@ -417,7 +416,7 @@ class LookupService {
       service: 'netflix',
       title: title || details.title, // Use extracted title if available, otherwise TMDB title
       rating,
-      year,
+      genre,
       runtime,
       imdbId: details.external_ids?.imdb_id,
       posterUrl,

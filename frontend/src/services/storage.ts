@@ -6,7 +6,7 @@ interface HistoryItem {
   title?: string;
   service: "netflix" | "manual";
   rating?: string;
-  year?: string;
+  genre?: string;
   runtime?: string;
   imdbId?: string;
   posterUrl?: string;

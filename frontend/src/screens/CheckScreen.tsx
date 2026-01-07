@@ -22,7 +22,7 @@ interface LookupResponse {
   success: boolean;
   title?: string;
   rating?: string;
-  year?: string;
+  genre?: string;
   runtime?: string;
   imdbId?: string;
   posterUrl?: string;
@@ -36,7 +36,7 @@ interface HistoryItem {
   title?: string;
   service: "netflix" | "manual";
   rating?: string;
-  year?: string;
+  genre?: string;
   runtime?: string;
   imdbId?: string;
   posterUrl?: string;
@@ -129,7 +129,7 @@ export const CheckScreen: React.FC = () => {
           title: response.title,
           service: response.error ? "manual" : "netflix",
           rating: response.rating,
-          year: response.year,
+          genre: response.genre,
           runtime: response.runtime,
           imdbId: response.imdbId,
           posterUrl: response.posterUrl,

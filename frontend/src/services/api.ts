@@ -9,7 +9,7 @@ interface LookupResponse {
   success: boolean;
   title?: string;
   rating?: string;
-  year?: string;
+  genre?: string;
   runtime?: string;
   imdbId?: string;
   posterUrl?: string;
