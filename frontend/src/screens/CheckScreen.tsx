@@ -84,6 +84,7 @@ export const CheckScreen: React.FC = () => {
     // - It's different from the last lookup (avoid duplicate lookups)
     // - Not currently loading
     // - Input looks like a URL or has substantial content
+    // - Input hasn't been cleared (empty string means we just cleared it after success)
     if (
       trimmed.length > 0 &&
       trimmed !== lastLookupInput &&
@@ -92,14 +93,14 @@ export const CheckScreen: React.FC = () => {
     ) {
       // Small delay to avoid triggering on every keystroke
       const timer = setTimeout(() => {
-        if (input.trim() === trimmed) {
+        if (input.trim() === trimmed && trimmed.length > 0) {
           handleLookup(trimmed);
         }
       }, 500); // 500ms debounce
 
       return () => clearTimeout(timer);
     }
-  }, [input]);
+  }, [input, lastLookupInput, loading]);
 
   const handleLookup = async (text?: string) => {
     const lookupText = text || input.trim();
@@ -118,7 +119,9 @@ export const CheckScreen: React.FC = () => {
 
       if (response.success) {
         setResult(response);
-        setInput(""); // Clear the input box after successful lookup
+        // Clear the input box after successful lookup
+        setInput("");
+        setLastLookupInput(""); // Also reset last lookup to allow same input again later
 
         const historyItem: HistoryItem = {
           id: `${Date.now()}-${Math.random()}`,
