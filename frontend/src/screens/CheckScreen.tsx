@@ -118,19 +118,20 @@ export const CheckScreen: React.FC = () => {
 
       if (response.success) {
         setResult(response);
+        setInput(""); // Clear the input box after successful lookup
 
-              const historyItem: HistoryItem = {
-                id: `${Date.now()}-${Math.random()}`,
-                input: lookupText,
-                title: response.title,
-                service: response.error ? "manual" : "netflix",
-                rating: response.rating,
-                year: response.year,
-                runtime: response.runtime,
-                imdbId: response.imdbId,
-                posterUrl: response.posterUrl,
-                checkedAt: Date.now(),
-              };
+        const historyItem: HistoryItem = {
+          id: `${Date.now()}-${Math.random()}`,
+          input: lookupText,
+          title: response.title,
+          service: response.error ? "manual" : "netflix",
+          rating: response.rating,
+          year: response.year,
+          runtime: response.runtime,
+          imdbId: response.imdbId,
+          posterUrl: response.posterUrl,
+          checkedAt: Date.now(),
+        };
         await storageService.saveHistoryItem(historyItem);
       } else {
         // Show specific error messages based on error type

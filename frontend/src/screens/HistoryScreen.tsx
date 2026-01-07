@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Alert,
   Animated,
-  Image,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useColorScheme } from "react-native";
@@ -156,13 +155,6 @@ export const HistoryScreen: React.FC = () => {
                  onPress={() => setSelectedItem(item)}
                  activeOpacity={0.7}
                >
-                 {item.posterUrl && (
-                   <Image
-                     source={{ uri: item.posterUrl }}
-                     style={styles.posterImage}
-                     resizeMode="cover"
-                   />
-                 )}
                  <View style={styles.historyItemContent}>
                    <Text style={styles.historyItemTitle} numberOfLines={1}>
                      {item.title || item.input}
@@ -340,13 +332,6 @@ const createStyles = (isDark: boolean) =>
              shadowOpacity: 0.05,
              shadowRadius: 2,
              elevation: 2,
-           },
-           posterImage: {
-             width: 50,
-             height: 75,
-             borderRadius: 8,
-             marginRight: 12,
-             backgroundColor: isDark ? "#2C2C2E" : "#E5E7EB",
            },
            historyItemContent: {
              flex: 1,
